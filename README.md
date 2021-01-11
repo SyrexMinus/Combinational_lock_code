@@ -31,68 +31,6 @@ Since in the combinational lock we need to have an ability to enter data, passwo
 
 To control register `state`, we will create a module `state_manager`. This module synchronizes other parts of the system by the variable `state`, describes what state will be next, and under what conditions state will change. 
 
-```
-module state_manager(
-input button_next,
-
-input [3:0] digit1_showing,
-input [3:0] digit2_showing,
-input [3:0] digit3_showing,
-input [3:0] digit4_showing,
-input [3:0] digit5_showing,
-input [3:0] digit6_showing,
-input [3:0] digit7_showing,
-input [3:0] digit8_showing,
-
-input [3:0] digit1_password,
-input [3:0] digit2_password,
-input [3:0] digit3_password,
-input [3:0] digit4_password,
-input [3:0] digit5_password,
-input [3:0] digit6_password,
-input [3:0] digit7_password,
-input [3:0] digit8_password,
-
-output reg [2:0] state = 3'd0
-);
-
-always@ (posedge button_next)
-begin
-
-case(state)
-3'd0:
-state = 'd1;
-
-3'd1:
-state = 'd2;
-
-3'd2:
-state = 'd3;
-
-3'd3:
-begin
-if(digit1_showing == digit1_password &&
-digit2_showing == digit2_password &&
-digit3_showing == digit3_password &&
-digit4_showing == digit4_password &&
-digit5_showing == digit5_password &&
-digit6_showing == digit6_password &&
-digit7_showing == digit7_password &&
-digit8_showing == digit8_password)
-state = 'd4;
-end
-
-3'd4:
-state = 'd0;
-
-default:
-state = state;
-endcase
-
-end
-endmodule 
-```
-
 #### Inputs and outputs
 
 Input `button_next` is used to move to the next stage if conditions are satisfactory.
@@ -110,61 +48,6 @@ The module has `always` block which is executed every time `button_next` is clic
 We need to memorize data and password, therefore we create module `data_saver` which will do this. 
 
 This module will allow us to save registers from some inputs. We will save there passcode and data.
-
-```
-module data_saver(
-input [2:0] state,
-input [2:0] state_save,
-
-input [3:0] digit1_insertdata,
-input [3:0] digit2_insertdata,
-input [3:0] digit3_insertdata,
-input [3:0] digit4_insertdata,
-input [3:0] digit5_insertdata,
-input [3:0] digit6_insertdata,
-input [3:0] digit7_insertdata,
-input [3:0] digit8_insertdata,
-
-output reg [3:0] digit1_data,
-output reg [3:0] digit2_data,
-output reg [3:0] digit3_data,
-output reg [3:0] digit4_data,
-output reg [3:0] digit5_data,
-output reg [3:0] digit6_data,
-output reg [3:0] digit7_data,
-output reg [3:0] digit8_data
-);
-
-always@ (*)
-begin
-	case(state)
-		state_save:
-		begin
-			digit1_data <= digit1_insertdata;
-			digit2_data <= digit2_insertdata;
-			digit3_data <= digit3_insertdata;
-			digit4_data <= digit4_insertdata;
-			digit5_data <= digit5_insertdata;
-			digit6_data <= digit6_insertdata;
-			digit7_data <= digit7_insertdata;
-			digit8_data <= digit8_insertdata;
-		end
-		default:
-		begin
-			digit1_data <= digit1_data;
-			digit2_data <= digit2_data;
-			digit3_data <= digit3_data;
-			digit4_data <= digit4_data;
-			digit5_data <= digit5_data;
-			digit6_data <= digit6_data;
-			digit7_data <= digit7_data;
-			digit8_data <= digit8_data;
-		end
-	endcase
-end
-
-endmodule 
-```
 
 #### Inputs and outputs 
 
@@ -185,128 +68,6 @@ In the `always` block it check `state` and if it equal to `save_state`, it saves
 Since we want to display different data from different registers (e.g. input data or saved data) on the same display, but segments on LED are just wires, each of which could be connected only to one register, we need to have some registers which will be "unite" those different registers, that is, equate to registers when their time teaches. We will perform the switch of the "unite" register in the module `show_manager`. 
 
 This module selects, according to the state, a pack of digits with `position_pointer` which will be displayed on LED among different packs.
-
-```
-module show_manager(
-input [2:0] state,
-input button_increase,
-
-input [2:0] position_pointer_insertdata,
-input [3:0] digit1_insertdata,
-input [3:0] digit2_insertdata,
-input [3:0] digit3_insertdata,
-input [3:0] digit4_insertdata,
-input [3:0] digit5_insertdata,
-input [3:0] digit6_insertdata,
-input [3:0] digit7_insertdata,
-input [3:0] digit8_insertdata,
-
-input [2:0] position_pointer_insertnewpass,
-input [3:0] digit1_insertnewpass,
-input [3:0] digit2_insertnewpass,
-input [3:0] digit3_insertnewpass,
-input [3:0] digit4_insertnewpass,
-input [3:0] digit5_insertnewpass,
-input [3:0] digit6_insertnewpass,
-input [3:0] digit7_insertnewpass,
-input [3:0] digit8_insertnewpass,
-
-input [2:0] position_pointer_insertpass,
-input [3:0] digit1_insertpass,
-input [3:0] digit2_insertpass,
-input [3:0] digit3_insertpass,
-input [3:0] digit4_insertpass,
-input [3:0] digit5_insertpass,
-input [3:0] digit6_insertpass,
-input [3:0] digit7_insertpass,
-input [3:0] digit8_insertpass,
-
-input [3:0] digit1_data,
-input [3:0] digit2_data,
-input [3:0] digit3_data,
-input [3:0] digit4_data,
-input [3:0] digit5_data,
-input [3:0] digit6_data,
-input [3:0] digit7_data,
-input [3:0] digit8_data,
-
-output reg [2:0] position_pointer,
-output reg [3:0] digit1 = 'd0,
-output reg [3:0] digit2 = 'd0,
-output reg [3:0] digit3 = 'd0,
-output reg [3:0] digit4 = 'd0,
-output reg [3:0] digit5 = 'd0,
-output reg [3:0] digit6 = 'd0,
-output reg [3:0] digit7 = 'd0,
-output reg [3:0] digit8 = 'd0
-);
-
-always@ (state or button_increase)
-begin
-	case(state)
-		'd0:
-		begin
-			position_pointer <= position_pointer_insertdata;
-			digit1 <= digit1_insertdata;
-			digit2 <= digit2_insertdata;
-			digit3 <= digit3_insertdata;
-			digit4 <= digit4_insertdata;
-			digit5 <= digit5_insertdata;
-			digit6 <= digit6_insertdata;
-			digit7 <= digit7_insertdata;
-			digit8 <= digit8_insertdata;
-		end
-		'd1:
-		begin
-			position_pointer <= position_pointer_insertnewpass;
-			digit1 <= digit1_insertnewpass;
-			digit2 <= digit2_insertnewpass;
-			digit3 <= digit3_insertnewpass;
-			digit4 <= digit4_insertnewpass;
-			digit5 <= digit5_insertnewpass;
-			digit6 <= digit6_insertnewpass;
-			digit7 <= digit7_insertnewpass;
-			digit8 <= digit8_insertnewpass;
-		end
-		'd2:
-		begin
-			digit1 <= digit1_insertnewpass;
-			digit2 <= digit2_insertnewpass;
-			digit3 <= digit3_insertnewpass;
-			digit4 <= digit4_insertnewpass;
-			digit5 <= digit5_insertnewpass;
-			digit6 <= digit6_insertnewpass;
-			digit7 <= digit7_insertnewpass;
-			digit8 <= digit8_insertnewpass;
-		end
-		'd3:
-		begin
-			position_pointer <= position_pointer_insertpass;
-			digit1 <= digit1_insertpass;
-			digit2 <= digit2_insertpass;
-			digit3 <= digit3_insertpass;
-			digit4 <= digit4_insertpass;
-			digit5 <= digit5_insertpass;
-			digit6 <= digit6_insertpass;
-			digit7 <= digit7_insertpass;
-			digit8 <= digit8_insertpass;
-		end
-		'd4:
-		begin
-			digit1 <= digit1_data;
-			digit2 <= digit2_data;
-			digit3 <= digit3_data;
-			digit4 <= digit4_data;
-			digit5 <= digit5_data;
-			digit6 <= digit6_data;
-			digit7 <= digit7_data;
-			digit8 <= digit8_data;
-		end
-	endcase
-end
-
-endmodule 
-```
 
 #### Inputs and outputs 
 
@@ -330,33 +91,6 @@ In the `always` block it checks using the `case` block which digits and position
 
 To show the user which state is now, we will display it on indicators. Manage of indication will be in the `state_indicator` module.
 
-```
-module state_indicator(
-input [2:0] state,
-output reg [4:0] lights
-);
-
-always@ (*)
-begin
-	case(state)
-		3'd0:
-			lights = 5'b11110;
-		3'd1:
-			lights = 5'b11101;
-		3'd2:
-			lights = 5'b11011;
-		3'd3:
-			lights = 5'b10111;
-		3'd4:
-			lights = 5'b01111;
-		default:
-			lights = 5'b11111;
-	endcase
-end
-
-endmodule 
-```
-
 #### Inputs and outputs 
 
 Input `state` is used to select which indicator will be on. It should be connected 
@@ -370,53 +104,6 @@ Module in `always` block turns on the corresponding indicator for the current st
 ### increase_digit.v
 
 This module increases selected by `position_pointer` digit by one when the user presses the button. Part of number modifying.
-
-```
-// when button is clicked it increase in current digit
-module increase_digit(
-input button_increase,
-input [2:0] position_pointer,
-input [2:0] state,
-input [2:0] state_need,
-output reg [3:0] digit1reg = 'd0,
-output reg [3:0] digit2reg = 'd0,
-output reg [3:0] digit3reg = 'd0,
-output reg [3:0] digit4reg = 'd0,
-output reg [3:0] digit5reg = 'd0,
-output reg [3:0] digit6reg = 'd0,
-output reg [3:0] digit7reg = 'd0,
-output reg [3:0] digit8reg = 'd0
-);
-
-always@ (posedge button_increase)
-begin
-	if(state == state_need)
-	begin
-		case (position_pointer)
-			'd0:
-				digit1reg <= (digit1reg + 1) % 10;
-			'd1:
-				digit2reg <= (digit2reg + 1) % 10;
-			'd2:
-				digit3reg <= (digit3reg + 1) % 10;
-			'd3:
-				digit4reg <= (digit4reg + 1) % 10;
-			'd4:
-				digit5reg <= (digit5reg + 1) % 10;
-			'd5:
-				digit6reg <= (digit6reg + 1) % 10;
-			'd6:
-				digit7reg <= (digit7reg + 1) % 10;
-			'd7:
-				digit8reg <= (digit8reg + 1) % 10;
-			default:
-				digit1reg <= (digit1reg + 1) % 10;
-		endcase
-	end
-end
-
-endmodule 
-```
 
 #### Inputs and outputs
 
@@ -436,26 +123,6 @@ Every time when `button_increase` clicked digit corresponding to `position_point
 
 This module shifts `position_pointer` by one after clicking `shift_button`. Part of number modifying.
 
-```
-// after button click it shift pointer to next number
-module shift_anode(
-input shift_button,
-input [2:0] state,
-input [2:0] state_need,
-output reg [2:0] position_pointer = 'd0
-);
-
-always@ (posedge shift_button)
-if(state == state_need)
-begin
-	begin
-		position_pointer <= position_pointer + 1;
-	end
-end
-
-endmodule 
-```
-
 #### Inputs and outputs
 
 Input `shift_button` is control button to shift `position_point`.
@@ -473,53 +140,6 @@ Every time when `shift_button` clicked position_pointer increases by one, if `st
 Unfortunately, FPGA plate designers didn't implement auto digit to cathode (sticks and points on the LED display) signals translator, we can not just execute some magic command `print` as in Python, so we need to perform translation, as well as other steps to display data, by ourselves.
 
 In the `bcd_to_cathodes` module we perform digit to cathode signals translation of digit data: digit itself (sticks) and, if the current digit is selected, pointer (dot) for it. There happens digit displaying.
-
-```
-// translator digit to cathodes (sticks)
-module bcd_to_cathodes(
-	input [3:0] digit,
-	input position_pointer_now,
-	output reg [7:0] cathode = 0
-);
-
-always@ (position_pointer_now)
-begin
-	if(position_pointer_now == 1)
-		cathode[7] = 1'b0;
-	else
-		cathode[7] = 1'b1;
-end
-
-always@ (digit)
-	begin
-		case(digit)
-			4'd0:
-				cathode[6:0] = 7'b1000000;	// zero
-			4'd1:
-				cathode[6:0] = 7'b1111001;	// one
-			4'd2:
-				cathode[6:0] = 7'b0100100;	// two
-			4'd3:
-				cathode[6:0] = 7'b0110000;	// three
-			4'd4:
-				cathode[6:0] = 7'b0011001;	// four
-			4'd5:
-				cathode[6:0] = 7'b0010010;	// five
-			4'd6:
-				cathode[6:0] = 7'b0000010;	// six
-			4'd7:
-				cathode[6:0] = 7'b1111000;	// seven
-			4'd8:
-				cathode[6:0] = 7'b0000000;	// eight
-			4'd9:
-				cathode[6:0] = 7'b0010000;	// nine
-			default:
-				cathode[6:0] = 7'b1000000;	// zero in any other cases
-		endcase
-	end
-
-endmodule 
-```
 
 #### Inputs and outputs
 
