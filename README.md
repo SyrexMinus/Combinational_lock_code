@@ -2,6 +2,8 @@
 
 Verilog HDL code for combinational lock on FPGA.
 
+Article: https://habr.com/ru/post/537042/
+
 ## Verilog implementation of the combinational lock on FPGA plate
 
 Here we will describe the realization of combinational lock on Verilog hardware description language (HDL). These Verilog HDL files will describe the system architecture of the combinational lock. 
@@ -251,3 +253,11 @@ Detailed description of the module see there: http://www.labfor.ru/articles/debo
 ### top.v
 
 Finally, we need to implement a top-level module. There we will "call" all modules that we want to use and descript logic between system elements.
+
+## Authors
+
+The project authors are Shevchenko Makar Ilyich, Murashko Artem Maximovich, Chernitsa Artem Alexandrovich.
+
+## Acknowledgements
+
+Thanks to: Burmyakov Artem, Tormasov Alexander, Ostankovich Vladislav, Muhammad Fahim, Voronov Artem, Innopolis University.
